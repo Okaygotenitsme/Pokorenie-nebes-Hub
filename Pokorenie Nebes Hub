@@ -46,7 +46,7 @@ local PlayerSection = PlayerTab:CreateSection("Player")
 local Button = PlayerTab:CreateButton({
    Name = "Goku moveset",
    Callback = function()
-     loadstring(game:HttpGet("https://raw.githubusercontent.com/Okaygotenitsme/Pokorenie-nebes-Hub/refs/heads/main/Goku%20moveset"))()
+     loadstring(game:HttpGet("https://pastebin.com/raw/32Vs1U6V"))()
    end,
 })
 
