@@ -63,3 +63,11 @@ local SharinganButton = MainTab:CreateButton({
      loadstring(game:HttpGet("https://raw.githubusercontent.com/Okaygotenitsme/Pokorenie-nebes-Hub/refs/heads/main/Sharingan"))()
    end,
 })
+
+
+local TrashButton = MainTab:CreateButton({
+   Name = "Trashcan man",
+   Callback = function()
+     loadstring(game:HttpGet("loadstring(game:HttpGet("https://raw.githubusercontent.com/yes1nt/yes/refs/heads/main/Trashcan%20Man", true))()"))()
+   end,
+})
