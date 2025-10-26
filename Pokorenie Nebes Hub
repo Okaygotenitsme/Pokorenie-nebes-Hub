@@ -47,3 +47,11 @@ local Button = PlayerTab:CreateButton({
      loadstring(game:HttpGet("https://pastebin.com/raw/32Vs1U6V"))()
    end,
 })
+
+local ClickButton = PlayerTab:CreateButton({
+   Name = "Flight",
+   Callback = function()
+     loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Invinicible-Flight-R15-45414"))()
+   end,
+})
+
