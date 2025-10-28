@@ -1,6 +1,3 @@
--- Player Follower GUI + Random/Specific Target + Stop Button Replacement + Minimize + Draggable + Signature + Error Message
--- LocalScript in StarterPlayerScripts
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
