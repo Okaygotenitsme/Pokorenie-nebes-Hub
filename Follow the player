@@ -1,6 +1,3 @@
---// Random Player Follower with GUI + Manual CFrame (Dash-proof)
--- Place in StarterPlayerScripts (LocalScript)
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -16,23 +13,54 @@ gui.ResetOnSpawn = false
 gui.Parent = LocalPlayer.PlayerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 190)
-frame.Position = UDim2.new(0.5, -125, 0.5, -95)
+frame.Size = UDim2.new(0, 280, 0, 320)
+frame.Position = UDim2.new(0.5, -140, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BackgroundTransparency = 0.2
 frame.Active = true
 frame.Parent = gui
 
+-- Title
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
+title.Size = UDim2.new(1, -40, 0, 30) -- leave space for minimize button
 title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
 title.Text = "Player Follower"
 title.Font = Enum.Font.SourceSansBold
 title.TextScaled = true
 title.TextColor3 = Color3.new(1, 1, 1)
+title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
+-- Minimize Button
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -35, 0, 5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+minimizeButton.Text = "-"
+minimizeButton.Font = Enum.Font.SourceSansBold
+minimizeButton.TextScaled = true
+minimizeButton.TextColor3 = Color3.new(1, 1, 1)
+minimizeButton.Parent = frame
+
+local minimized = false
+local function toggleMinimize()
+	minimized = not minimized
+	for _, obj in ipairs(frame:GetChildren()) do
+		if obj ~= title and obj ~= minimizeButton and obj ~= signature then
+			obj.Visible = not minimized
+		end
+	end
+	if minimized then
+		frame.Size = UDim2.new(0, 280, 0, 40)
+	else
+		frame.Size = UDim2.new(0, 280, 0, 320)
+	end
+end
+
+minimizeButton.MouseButton1Click:Connect(toggleMinimize)
+
+-- Distance Label
 local distanceLabel = Instance.new("TextLabel")
 distanceLabel.Size = UDim2.new(1, -20, 0, 25)
 distanceLabel.Position = UDim2.new(0, 10, 0, 40)
@@ -43,6 +71,7 @@ distanceLabel.Font = Enum.Font.SourceSans
 distanceLabel.TextScaled = true
 distanceLabel.Parent = frame
 
+-- Distance Box
 local distanceBox = Instance.new("TextBox")
 distanceBox.Size = UDim2.new(1, -20, 0, 30)
 distanceBox.Position = UDim2.new(0, 10, 0, 70)
@@ -54,19 +83,55 @@ distanceBox.ClearTextOnFocus = false
 distanceBox.Text = "8"
 distanceBox.Parent = frame
 
-local startButton = Instance.new("TextButton")
-startButton.Size = UDim2.new(1, -20, 0, 35)
-startButton.Position = UDim2.new(0, 10, 0, 110)
-startButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
-startButton.TextColor3 = Color3.new(1, 1, 1)
-startButton.Font = Enum.Font.SourceSansBold
-startButton.TextScaled = true
-startButton.Text = "Start Following"
-startButton.Parent = frame
+-- Random Player Button
+local randomButton = Instance.new("TextButton")
+randomButton.Size = UDim2.new(1, -20, 0, 35)
+randomButton.Position = UDim2.new(0, 10, 0, 110)
+randomButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+randomButton.TextColor3 = Color3.new(1, 1, 1)
+randomButton.Font = Enum.Font.SourceSansBold
+randomButton.TextScaled = true
+randomButton.Text = "Follow Random Player"
+randomButton.Parent = frame
 
+-- Specific Player Label
+local specificLabel = Instance.new("TextLabel")
+specificLabel.Size = UDim2.new(1, -20, 0, 20)
+specificLabel.Position = UDim2.new(0, 10, 0, 155)
+specificLabel.BackgroundTransparency = 1
+specificLabel.Text = "Enter username to follow:"
+specificLabel.TextColor3 = Color3.new(1, 1, 1)
+specificLabel.Font = Enum.Font.SourceSans
+specificLabel.TextScaled = true
+specificLabel.Parent = frame
+
+-- Specific Player Box
+local specificBox = Instance.new("TextBox")
+specificBox.Size = UDim2.new(1, -20, 0, 30)
+specificBox.Position = UDim2.new(0, 10, 0, 175)
+specificBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+specificBox.TextColor3 = Color3.new(1, 1, 1)
+specificBox.Font = Enum.Font.SourceSans
+specificBox.TextScaled = true
+specificBox.ClearTextOnFocus = false
+specificBox.PlaceholderText = "Exact username here"
+specificBox.Parent = frame
+
+-- Follow Specific Button
+local specificButton = Instance.new("TextButton")
+specificButton.Size = UDim2.new(1, -20, 0, 35)
+specificButton.Position = UDim2.new(0, 10, 0, 210)
+specificButton.BackgroundColor3 = Color3.fromRGB(50, 120, 200)
+specificButton.TextColor3 = Color3.new(1, 1, 1)
+specificButton.Font = Enum.Font.SourceSansBold
+specificButton.TextScaled = true
+specificButton.Text = "Follow Specific Player"
+specificButton.Parent = frame
+
+-- Stop Button
 local stopButton = Instance.new("TextButton")
 stopButton.Size = UDim2.new(1, -20, 0, 35)
-stopButton.Position = UDim2.new(0, 10, 0, 150)
+stopButton.Position = UDim2.new(0, 10, 0, 250)
 stopButton.BackgroundColor3 = Color3.fromRGB(170, 40, 40)
 stopButton.TextColor3 = Color3.new(1, 1, 1)
 stopButton.Font = Enum.Font.SourceSansBold
@@ -74,6 +139,18 @@ stopButton.TextScaled = true
 stopButton.Text = "Stop Following"
 stopButton.Visible = false
 stopButton.Parent = frame
+
+-- Signature Label
+local signature = Instance.new("TextLabel")
+signature.Size = UDim2.new(1, -20, 0, 20)
+signature.Position = UDim2.new(0, 10, 1, -25)
+signature.BackgroundTransparency = 1
+signature.Text = "Made by: Meloten / Pokorenie nebes"
+signature.TextColor3 = Color3.fromRGB(200, 200, 200)
+signature.Font = Enum.Font.SourceSansItalic
+signature.TextScaled = true
+signature.TextXAlignment = Enum.TextXAlignment.Right
+signature.Parent = frame
 
 -- === VARIABLES ===
 local following = false
@@ -94,6 +171,15 @@ local function getRandomPlayer()
 	return others[math.random(1, #others)]
 end
 
+local function getPlayerByName(name)
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr.Name:lower() == name:lower() then
+			return plr
+		end
+	end
+	return nil
+end
+
 local function stopFollowing()
 	if followConnection then
 		followConnection:Disconnect()
@@ -101,14 +187,89 @@ local function stopFollowing()
 	end
 	following = false
 	target = nil
-	frame.Visible = true
+	randomButton.Visible = true
+	specificButton.Visible = true
 	stopButton.Visible = false
-	startButton.Visible = true
 end
 
-local function startFollowing()
+local function startFollowing(playerTarget)
 	if following then return end
+	target = playerTarget
+	if not target then
+		warn("Target not found.")
+		return
+	end
 
+	local value = tonumber(distanceBox.Text)
+	if value then followDistance = value end
+
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	root = char:WaitForChild("HumanoidRootPart")
+
+	following = true
+	randomButton.Visible = false
+	specificButton.Visible = false
+	stopButton.Visible = true
+
+	if followConnection then
+		followConnection:Disconnect()
+	end
+
+	followConnection = RunService.RenderStepped:Connect(function()
+		if not following or not target or not target.Character or not root then return end
+		local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+		if not targetRoot then return end
+
+		local desiredPos = targetRoot.Position - (targetRoot.CFrame.LookVector * followDistance)
+		local targetCFrame = CFrame.new(desiredPos, targetRoot.Position)
+		root.CFrame = root.CFrame:Lerp(targetCFrame, 0.25)
+	end)
+end
+
+-- === RESPAWN HANDLING ===
+LocalPlayer.CharacterAdded:Connect(function(char)
+	root = char:WaitForChild("HumanoidRootPart")
+end)
+
+-- === BUTTON EVENTS ===
+randomButton.MouseButton1Click:Connect(function()
+	startFollowing(getRandomPlayer())
+end)
+
+specificButton.MouseButton1Click:Connect(function()
+	local plr = getPlayerByName(specificBox.Text)
+	if plr then
+		startFollowing(plr)
+	else
+		warn("Player not found: " .. specificBox.Text)
+	end
+end)
+
+stopButton.MouseButton1Click:Connect(stopFollowing)
+
+-- === DRAGGABLE GUI ===
+local dragging = false
+local dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
 	target = getRandomPlayer()
 	if not target then
 		warn("No players to follow.")
