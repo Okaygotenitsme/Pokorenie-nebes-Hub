@@ -1,4 +1,4 @@
---// Random Player Follower with Draggable GUI + Stop Button
+--// Random Player Follower with GUI + Smooth Movement + Body Rotation + Respawn Fix
 -- Place in StarterPlayerScripts (LocalScript)
 
 local Players = game:GetService("Players")
@@ -6,7 +6,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Wait until PlayerGui exists
+-- Wait for PlayerGui
 repeat task.wait() until LocalPlayer:FindFirstChild("PlayerGui")
 
 -- === GUI CREATION ===
@@ -77,9 +77,10 @@ stopButton.Parent = frame
 
 -- === VARIABLES ===
 local following = false
-local connection
 local target
 local followDistance = 8
+local bodyVel
+local root
 
 -- === FUNCTIONS ===
 local function getRandomPlayer()
@@ -94,9 +95,9 @@ local function getRandomPlayer()
 end
 
 local function stopFollowing()
-	if connection then
-		connection:Disconnect()
-		connection = nil
+	if bodyVel then
+		bodyVel:Destroy()
+		bodyVel = nil
 	end
 	following = false
 	target = nil
@@ -105,10 +106,91 @@ local function stopFollowing()
 	startButton.Visible = true
 end
 
+local function setupBodyVelocity()
+	if bodyVel then bodyVel:Destroy() end
+	bodyVel = Instance.new("BodyVelocity")
+	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+	bodyVel.Velocity = Vector3.new(0,0,0)
+	bodyVel.Parent = root
+end
+
 local function startFollowing()
 	if following then return end
 
 	target = getRandomPlayer()
+	if not target then
+		warn("No players to follow.")
+		return
+	end
+	print("Following:", target.Name)
+
+	local value = tonumber(distanceBox.Text)
+	if value then
+		followDistance = value
+	else
+		followDistance = 8
+	end
+
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	root = char:WaitForChild("HumanoidRootPart")
+	setupBodyVelocity()
+
+	following = true
+	startButton.Visible = false
+	stopButton.Visible = true
+
+	RunService.RenderStepped:Connect(function()
+		if not following or not target or not target.Character then return end
+		local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+		if not targetRoot then return end
+
+		-- Move toward target
+		local desiredPos = targetRoot.Position - (targetRoot.CFrame.LookVector * followDistance)
+		local direction = (desiredPos - root.Position)
+		bodyVel.Velocity = direction * 10 -- adjust multiplier for speed
+
+		-- Rotate character to face target smoothly
+		local currentCFrame = root.CFrame
+		local targetCFrame = CFrame.new(root.Position, targetRoot.Position)
+		root.CFrame = currentCFrame:Lerp(targetCFrame, 0.2) -- smooth rotation
+	end)
+end
+
+-- === RESPAWN HANDLING ===
+LocalPlayer.CharacterAdded:Connect(function(char)
+	root = char:WaitForChild("HumanoidRootPart")
+	if following then
+		setupBodyVelocity()
+	end
+end)
+
+-- === EVENTS ===
+startButton.MouseButton1Click:Connect(startFollowing)
+stopButton.MouseButton1Click:Connect(stopFollowing)
+
+-- === DRAGGABLE GUI ===
+local dragging = false
+local dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)	target = getRandomPlayer()
 	if not target then
 		warn("No players to follow.")
 		return
