@@ -43,6 +43,13 @@ local MainSection = MainTab:CreateSection("Main")
 local PlayerTab = Window:CreateTab("Player", 4483362458) -- Title, Image
 local PlayerSection = PlayerTab:CreateSection("Player")
 
+local AimButton = MainTab:CreateButton({
+   Name = "Auto aim",
+   Callback = function()
+     loadstring(game:HttpGet("https://pastebin.com/raw/CdWYSbRc"))()
+   end,
+})
+
 local BlenderButton = MainTab:CreateButton({
    Name = "Blender Follow the player",
    Callback = function()
