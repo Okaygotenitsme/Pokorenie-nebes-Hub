@@ -64,24 +64,26 @@ local SharinganButton = MainTab:CreateButton({
    end,
 })
 
-local SpeedInput = PlayerTab:CreateInput({
-   Name = "Speed Change",
-   CurrentValue = "16",
-   PlaceholderText = "1-500",
-   RemoveTextAfterFocusLost = true,
-   Flag = "Speed input",
-   Callback = function(Text)
-      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Text)
+local SpeedSlider = PlayerTab:CreateSlider({
+   Name = "Walk Speed Slider",
+   Range = {0, 500},
+   Increment = 1,
+   Suffix = "Speed power",
+   CurrentValue = 16,
+   Flag = "Flag2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
    end,
 })
 
-local JumpInput = PlayerTab:CreateInput({
-   Name = "Jump Power Change",
-   CurrentValue = "1",
-   PlaceholderText = "1-300",
-   RemoveTextAfterFocusLost = true,
-   Flag = "Jump input",
-   Callback = function(Text)
-      game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Text)
+local JumpSlider = PlayerTab:CreateSlider({
+   Name = "Jump Power Slider",
+   Range = {0, 300},
+   Increment = 1,
+   Suffix = "Jump power",
+   CurrentValue = 1,
+   Flag = "Flag1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
    end,
 })
