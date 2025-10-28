@@ -1,4 +1,4 @@
---// Random Player Follower with GUI + Smooth Movement + Body Rotation + Respawn Fix
+--// Random Player Follower with GUI + Manual CFrame (Dash-proof)
 -- Place in StarterPlayerScripts (LocalScript)
 
 local Players = game:GetService("Players")
@@ -79,8 +79,8 @@ stopButton.Parent = frame
 local following = false
 local target
 local followDistance = 8
-local bodyVel
 local root
+local followConnection
 
 -- === FUNCTIONS ===
 local function getRandomPlayer()
@@ -95,23 +95,15 @@ local function getRandomPlayer()
 end
 
 local function stopFollowing()
-	if bodyVel then
-		bodyVel:Destroy()
-		bodyVel = nil
+	if followConnection then
+		followConnection:Disconnect()
+		followConnection = nil
 	end
 	following = false
 	target = nil
 	frame.Visible = true
 	stopButton.Visible = false
 	startButton.Visible = true
-end
-
-local function setupBodyVelocity()
-	if bodyVel then bodyVel:Destroy() end
-	bodyVel = Instance.new("BodyVelocity")
-	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-	bodyVel.Velocity = Vector3.new(0,0,0)
-	bodyVel.Parent = root
 end
 
 local function startFollowing()
@@ -122,37 +114,32 @@ local function startFollowing()
 		warn("No players to follow.")
 		return
 	end
-	print("Following:", target.Name)
 
 	local value = tonumber(distanceBox.Text)
-	if value then
-		followDistance = value
-	else
-		followDistance = 8
-	end
+	if value then followDistance = value end
 
 	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 	root = char:WaitForChild("HumanoidRootPart")
-	setupBodyVelocity()
 
 	following = true
 	startButton.Visible = false
 	stopButton.Visible = true
 
-	RunService.RenderStepped:Connect(function()
-		if not following or not target or not target.Character then return end
+	if followConnection then
+		followConnection:Disconnect()
+	end
+
+	followConnection = RunService.RenderStepped:Connect(function()
+		if not following or not target or not target.Character or not root then return end
 		local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
 		if not targetRoot then return end
 
-		-- Move toward target
+		-- Desired position behind target
 		local desiredPos = targetRoot.Position - (targetRoot.CFrame.LookVector * followDistance)
-		local direction = (desiredPos - root.Position)
-		bodyVel.Velocity = direction * 10 -- adjust multiplier for speed
 
-		-- Rotate character to face target smoothly
-		local currentCFrame = root.CFrame
-		local targetCFrame = CFrame.new(root.Position, targetRoot.Position)
-		root.CFrame = currentCFrame:Lerp(targetCFrame, 0.2) -- smooth rotation
+		-- Smoothly move and rotate character
+		local targetCFrame = CFrame.new(desiredPos, targetRoot.Position)
+		root.CFrame = root.CFrame:Lerp(targetCFrame, 0.25)
 	end)
 end
 
@@ -160,7 +147,7 @@ end
 LocalPlayer.CharacterAdded:Connect(function(char)
 	root = char:WaitForChild("HumanoidRootPart")
 	if following then
-		setupBodyVelocity()
+		-- Nothing extra needed; RenderStepped will pick up new root
 	end
 end)
 
@@ -169,63 +156,6 @@ startButton.MouseButton1Click:Connect(startFollowing)
 stopButton.MouseButton1Click:Connect(stopFollowing)
 
 -- === DRAGGABLE GUI ===
-local dragging = false
-local dragStart, startPos
-
-frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = frame.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		local delta = input.Position - dragStart
-		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
-end)	target = getRandomPlayer()
-	if not target then
-		warn("No players to follow.")
-		return
-	end
-
-	print("Following:", target.Name)
-
-	local value = tonumber(distanceBox.Text)
-	if value then
-		followDistance = value
-	else
-		followDistance = 8
-	end
-
-	following = true
-	startButton.Visible = false
-	stopButton.Visible = true
-
-	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	local root = char:WaitForChild("HumanoidRootPart")
-
-	connection = RunService.RenderStepped:Connect(function()
-		if not following or not target.Character then return end
-		local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-		if not targetRoot then return end
-		local desiredPos = targetRoot.Position - (targetRoot.CFrame.LookVector * followDistance)
-		root.CFrame = CFrame.new(desiredPos, targetRoot.Position)
-	end)
-end
-
--- === EVENT CONNECTIONS ===
-startButton.MouseButton1Click:Connect(startFollowing)
-stopButton.MouseButton1Click:Connect(stopFollowing)
-
--- === MAKE FRAME DRAGGABLE (WORKS ON PC & MOBILE) ===
 local dragging = false
 local dragStart, startPos
 
