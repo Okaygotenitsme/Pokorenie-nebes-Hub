@@ -71,3 +71,15 @@ local TrashButton = MainTab:CreateButton({
      loadstring(game:HttpGet("loadstring(game:HttpGet("https://raw.githubusercontent.com/yes1nt/yes/refs/heads/main/Trashcan%20Man", true))()"))()
    end,
 })
+
+local WalkSpeedSlider = PlayerTab:CreateSlider({
+   Name = "Walk Speed",
+   Range = {0, 300},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   end,
+})
