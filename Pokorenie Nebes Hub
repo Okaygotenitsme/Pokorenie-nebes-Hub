@@ -40,7 +40,7 @@ _G.SafeZoneClick = true
 
 function SafeZone()
 while _G.SafeZoneClick == true do
-    -- LocalScript inside StarterPlayerScripts
+-- LocalScript inside StarterPlayerScripts
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -49,12 +49,12 @@ local player = Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
 
 -- === SETTINGS ===
-local HEALTH_TRIGGER = 0.25      -- 25% HP
+local HEALTH_TRIGGER = 0.25      -- 25% HP for auto-remove
 local HEALTH_REMOVE = 0.7        -- 70% HP
 local SAFE_OFFSET = Vector3.new(0, 60, 0)
 local PLATFORM_SIZE = Vector3.new(200, 5, 200)
 local PLATFORM_COLOR = Color3.fromRGB(0, 255, 0)
-local PLATFORM_TRANSPARENCY = 0.6 -- semi-transparent
+local PLATFORM_TRANSPARENCY = 0.6
 local TELEPORT_DELAY = 0.15
 local STAY_RADIUS = 20
 local EXIT_KEY = Enum.KeyCode.G
@@ -64,8 +64,11 @@ local safeBlock
 local stayCheckConnection
 local exitGui
 local confirmGui
+local returnGui
 local creditsGui
 local onPlatform = false
+local manualExit = false
+local fullHealthBefore = true -- tracks if player was at full health
 
 ----------------------------------------------------
 -- UI HELPERS
@@ -91,11 +94,11 @@ local function createCredits()
 	creditsGui = gui
 end
 
-local function createConfirmDialog(onConfirm)
+local function createConfirmDialog(textMessage, onConfirm)
 	if confirmGui then confirmGui:Destroy() end
 
 	local gui = Instance.new("ScreenGui")
-	gui.Name = "ConfirmExitGui"
+	gui.Name = "ConfirmGui"
 	gui.ResetOnSpawn = false
 	gui.Parent = PlayerGui
 
@@ -111,7 +114,7 @@ local function createConfirmDialog(onConfirm)
 	text.Size = UDim2.new(1, -20, 0, 60)
 	text.Position = UDim2.new(0, 10, 0, 10)
 	text.BackgroundTransparency = 1
-	text.Text = "Are you sure you want to leave the platform?"
+	text.Text = textMessage
 	text.TextWrapped = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
 	text.TextScaled = true
@@ -139,7 +142,6 @@ local function createConfirmDialog(onConfirm)
 		gui:Destroy()
 		onConfirm(true)
 	end)
-
 	no.MouseButton1Click:Connect(function()
 		gui:Destroy()
 		onConfirm(false)
@@ -152,13 +154,13 @@ local function createExitButton(onPress)
 	if exitGui then exitGui:Destroy() end
 
 	local gui = Instance.new("ScreenGui")
-	gui.Name = "SafeExitGui"
+	gui.Name = "ExitGui"
 	gui.ResetOnSpawn = false
 	gui.Parent = PlayerGui
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(0, 150, 0, 50)
-	button.Position = UDim2.new(0, 20, 0, 20) -- top-left
+	button.Position = UDim2.new(0, 20, 0, 20)
 	button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
 	button.TextColor3 = Color3.fromRGB(255, 255, 255)
 	button.TextScaled = true
@@ -176,29 +178,26 @@ local function createExitButton(onPress)
 		)
 	end
 	button.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = button.Position
 			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
 			end)
 		end
 	end)
 	button.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch) then
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			update(input)
 		end
 	end)
 
 	button.MouseButton1Click:Connect(function()
-		createConfirmDialog(function(confirm)
+		createConfirmDialog("Are you sure you want to leave the platform?", function(confirm)
 			if confirm then
-				onPress()
+				removeSafeBlock()
+				manualExit = true
 			end
 		end)
 	end)
@@ -206,15 +205,41 @@ local function createExitButton(onPress)
 	exitGui = gui
 end
 
+local function createReturnButton(onPress)
+	if returnGui then returnGui:Destroy() end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ReturnGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 250, 0, 50)
+	button.Position = UDim2.new(0.5, -125, 0.8, 0)
+	button.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.TextScaled = true
+	button.Text = "Do you want to return to the platform?"
+	button.Parent = gui
+
+	button.MouseButton1Click:Connect(function()
+		removeReturnButton()
+		onPress()
+	end)
+
+	returnGui = gui
+end
+
+function removeReturnButton()
+	if returnGui then returnGui:Destroy() returnGui = nil end
+end
+
 ----------------------------------------------------
 -- PLATFORM LOGIC
 ----------------------------------------------------
-
 local function removeSafeBlock()
 	if safeBlock then safeBlock:Destroy() safeBlock = nil end
 	if stayCheckConnection then stayCheckConnection:Disconnect() stayCheckConnection = nil end
 	if exitGui then exitGui:Destroy() exitGui = nil end
-	if confirmGui then confirmGui:Destroy() confirmGui = nil end
 	onPlatform = false
 end
 
@@ -239,9 +264,10 @@ local function teleportToPlatform(char)
 		safeBlock = createSafeBlock(safePosition)
 	end
 	task.wait(TELEPORT_DELAY)
-	root.CFrame = CFrame.new(safePosition + Vector3.new(0, PLATFORM_SIZE.Y / 2 + 3, 0))
+	root.CFrame = CFrame.new(safePosition + Vector3.new(0, PLATFORM_SIZE.Y/2+3, 0))
 	createExitButton(function()
 		removeSafeBlock()
+		manualExit = true
 	end)
 	onPlatform = true
 
@@ -249,7 +275,7 @@ local function teleportToPlatform(char)
 		if not safeBlock or not char.Parent then return end
 		local dist = (root.Position - safeBlock.Position).Magnitude
 		if dist > STAY_RADIUS then
-			root.CFrame = CFrame.new(safeBlock.Position + Vector3.new(0, PLATFORM_SIZE.Y / 2 + 3, 0))
+			root.CFrame = CFrame.new(safeBlock.Position + Vector3.new(0, PLATFORM_SIZE.Y/2+3, 0))
 		end
 	end)
 end
@@ -257,14 +283,30 @@ end
 local function onCharacterAdded(char)
 	local humanoid = char:WaitForChild("Humanoid")
 	onPlatform = false
+	manualExit = false
+	fullHealthBefore = true
 
 	humanoid.HealthChanged:Connect(function(health)
 		local ratio = health / humanoid.MaxHealth
-		if ratio <= HEALTH_TRIGGER and not onPlatform then
+
+		-- Detect first damage from full health
+		if fullHealthBefore and ratio < 1 then
 			teleportToPlatform(char)
+			fullHealthBefore = false
 		end
+
+		-- If manual exit and player loses any health, show return button
+		if manualExit and ratio < 1 then
+			createReturnButton(function()
+				manualExit = false
+				teleportToPlatform(char)
+			end)
+		end
+
+		-- Auto remove platform when healed above threshold
 		if ratio >= HEALTH_REMOVE then
 			removeSafeBlock()
+			fullHealthBefore = true
 		end
 	end)
 end
@@ -275,21 +317,60 @@ end
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == EXIT_KEY and onPlatform and not confirmGui then
-		createConfirmDialog(function(confirm)
+		createConfirmDialog("Are you sure you want to leave the platform?", function(confirm)
 			if confirm then
 				removeSafeBlock()
+				manualExit = true
 			end
 		end)
 	end
+end)
+while _G.SafeZoneClick == false do
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+-- Example objects from your platform script
+local safeBlock
+local exitGui
+local onPlatform = false
+
+-- Your toggle
+_G.SafeZoneClick = true -- can change dynamically
+
+-- Connection that checks toggle every frame
+local connection
+connection = RunService.Heartbeat:Connect(function()
+    -- If toggle is off, clean everything
+    if not _G.SafeZoneClick then
+        if safeBlock then
+            safeBlock:Destroy()
+            safeBlock = nil
+        end
+        if exitGui then
+            exitGui:Destroy()
+            exitGui = nil
+        end
+        onPlatform = false
+        return -- skip the rest of the logic while disabled
+    end
+
+    -- If toggle is on, run your normal platform logic
+    local char = player.Character
+    if char then
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then
+            local healthRatio = humanoid.Health / humanoid.MaxHealth
+            if healthRatio <= 0.25 and not onPlatform then
+                -- Call your teleportToPlatform(char) function here
+            end
+        end
+    end
 end)
 
 -- INIT
 if player.Character then onCharacterAdded(player.Character) end
 player.CharacterAdded:Connect(onCharacterAdded)
 createCredits()
-task.wait(0.00001)
-end
-end
 
 local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
 local MainSection = MainTab:CreateSection("Main")
