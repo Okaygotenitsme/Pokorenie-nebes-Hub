@@ -36,7 +36,11 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
+if CurrentValue = true then
 _G.SafeZoneClick = true
+
+if CurrentValue = false then
+_G.SafeZoneClick = false
 
 function SafeZone()
 while _G.SafeZoneClick == true do
@@ -325,52 +329,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		end)
 	end
 end)
-while _G.SafeZoneClick == false do
-local RunService = game:GetService("RunService")
-local player = game.Players.LocalPlayer
-
--- Example objects from your platform script
-local safeBlock
-local exitGui
-local onPlatform = false
-
--- Your toggle
-_G.SafeZoneClick = true -- can change dynamically
-
--- Connection that checks toggle every frame
-local connection
-connection = RunService.Heartbeat:Connect(function()
-    -- If toggle is off, clean everything
-    if not _G.SafeZoneClick then
-        if safeBlock then
-            safeBlock:Destroy()
-            safeBlock = nil
-        end
-        if exitGui then
-            exitGui:Destroy()
-            exitGui = nil
-        end
-        onPlatform = false
-        return -- skip the rest of the logic while disabled
-    end
-
-    -- If toggle is on, run your normal platform logic
-    local char = player.Character
-    if char then
-        local humanoid = char:FindFirstChild("Humanoid")
-        if humanoid then
-            local healthRatio = humanoid.Health / humanoid.MaxHealth
-            if healthRatio <= 0.25 and not onPlatform then
-                -- Call your teleportToPlatform(char) function here
-            end
-        end
-    end
-end)
-
--- INIT
-if player.Character then onCharacterAdded(player.Character) end
-player.CharacterAdded:Connect(onCharacterAdded)
-createCredits()
 
 local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
 local MainSection = MainTab:CreateSection("Main")
