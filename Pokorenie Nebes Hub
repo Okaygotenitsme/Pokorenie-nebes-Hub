@@ -68,7 +68,7 @@ local LocalPlayer = Players.LocalPlayer
 local CUBE_COLOR = Color3.fromRGB(255, 0, 0)
 local LINE_COLOR = Color3.fromRGB(255, 0, 0)
 local LINE_THICKNESS = 0.2
-local CUBE_SIZE = Vector3.local AimButton = MainTab:CreateButton({
+local CUBE_SIZE = Vector3.new(5, 6, 3)
 
 -- FOLDER FOR VISUALS
 local visualsFolder = workspace:FindFirstChild("PlayerVisuals") or Instance.new("Folder")
