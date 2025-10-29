@@ -50,6 +50,198 @@ local AimButton = MainTab:CreateButton({
    end,
 })
 
+local ESPToggle = MainTab:CreateToggle({
+   Name = "ESP",
+   CurrentValue = false,
+   Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- SETTINGS
+local CUBE_COLOR = Color3.fromRGB(255, 0, 0)
+local LINE_COLOR = Color3.fromRGB(255, 0, 0)
+local LINE_THICKNESS = 0.2
+local CUBE_SIZE = Vector3.new(5, 6, 3)
+
+-- FOLDER FOR VISUALS
+local visualsFolder = workspace:FindFirstChild("PlayerVisuals") or Instance.new("Folder")
+visualsFolder.Name = "PlayerVisuals"
+visualsFolder.Parent = workspace
+
+local visuals = {}
+
+-- UTILITY FUNCTION
+local function safeDestroy(obj)
+	if obj and obj.Parent then
+		obj:Destroy()
+	end
+end
+
+-- LOCAL ATTACHMENT FOR BEAMS
+local function ensureLocalAttachment()
+	local char = LocalPlayer.Character
+	if not char then return nil end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return nil end
+	local att = root:FindFirstChild("ESP_LocalAttachment")
+	if not att then
+		att = Instance.new("Attachment")
+		att.Name = "ESP_LocalAttachment"
+		att.Parent = root
+	end
+	return att
+end
+
+-- CREATE BILLBOARD (NAME + HEALTH)
+local function createBillboard(player, humanoid)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = player.Name .. "_Billboard"
+	billboard.AlwaysOnTop = true
+	billboard.Size = UDim2.new(0, 200, 0, 40)
+	billboard.StudsOffset = Vector3.new(0, 5, 0)
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.TextStrokeTransparency = 0
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextScaled = true
+	nameLabel.Text = player.DisplayName
+	nameLabel.Parent = billboard
+
+	local healthLabel = Instance.new("TextLabel")
+	healthLabel.BackgroundTransparency = 1
+	healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+	healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+	healthLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+	healthLabel.TextStrokeTransparency = 0
+	healthLabel.Font = Enum.Font.GothamBold
+	healthLabel.TextScaled = true
+	healthLabel.Text = "Health: 0"
+	healthLabel.Parent = billboard
+
+	humanoid.HealthChanged:Connect(function()
+		healthLabel.Text = "Health: " .. math.floor(humanoid.Health)
+	end)
+	healthLabel.Text = "Health: " .. math.floor(humanoid.Health)
+
+	return billboard
+end
+
+-- REMOVE OLD VISUALS
+local function removeVisualsForPlayer(player)
+	local v = visuals[player]
+	if not v then return end
+	for _, obj in pairs(v) do safeDestroy(obj) end
+	visuals[player] = nil
+end
+
+-- CREATE VISUALS FOR PLAYER
+local function createVisualsForPlayer(player)
+	if player == LocalPlayer then return end
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local root = character:WaitForChild("HumanoidRootPart")
+	local humanoid = character:WaitForChild("Humanoid")
+
+	removeVisualsForPlayer(player)
+
+	-- CUBE (BoxHandleAdornment)
+	local cubeAdornment = Instance.new("BoxHandleAdornment")
+	cubeAdornment.Name = player.Name .. "_ESP_Cube"
+	cubeAdornment.Adornee = root
+	cubeAdornment.AlwaysOnTop = true
+	cubeAdornment.Size = CUBE_SIZE
+	cubeAdornment.Color3 = CUBE_COLOR
+	cubeAdornment.Transparency = 0.5
+	cubeAdornment.ZIndex = 10
+	cubeAdornment.Parent = visualsFolder
+
+	-- BEAM
+	local localAttach = ensureLocalAttachment()
+	local attachCube = Instance.new("Attachment")
+	attachCube.Parent = root
+
+	local beam = Instance.new("Beam")
+	beam.Name = player.Name .. "_ESP_Beam"
+	beam.Attachment0 = attachCube
+	beam.Attachment1 = localAttach
+	beam.Color = ColorSequence.new(LINE_COLOR)
+	beam.Transparency = NumberSequence.new(0.3)
+	beam.Width0 = LINE_THICKNESS
+	beam.Width1 = LINE_THICKNESS
+	beam.FaceCamera = true
+	beam.LightEmission = 1
+	beam.Parent = visualsFolder
+
+	-- BILLBOARD
+	local billboard = createBillboard(player, humanoid)
+	billboard.Parent = root
+
+	-- STORE VISUALS
+	visuals[player] = { cube = cubeAdornment, beam = beam, billboard = billboard }
+end
+
+-- HANDLE LOCAL PLAYER RESPAWN (BEAM ATTACHMENT)
+LocalPlayer.CharacterAdded:Connect(function()
+	task.wait(0.2)
+	local localAttach = ensureLocalAttachment()
+	for _, v in pairs(visuals) do
+		if v.beam then
+			v.beam.Attachment1 = localAttach
+		end
+	end
+end)
+
+-- SETUP PLAYER (JOIN + RESPAWN)
+local function setupPlayer(player)
+	player.CharacterAdded:Connect(function()
+		task.wait(0.1)
+		createVisualsForPlayer(player)
+	end)
+	player.CharacterRemoving:Connect(function()
+		removeVisualsForPlayer(player)
+	end)
+	if player.Character then
+		createVisualsForPlayer(player)
+	end
+end
+
+-- PLAYER EVENTS
+Players.PlayerAdded:Connect(setupPlayer)
+Players.PlayerRemoving:Connect(removeVisualsForPlayer)
+
+-- INITIALIZE EXISTING PLAYERS
+for _, player in ipairs(Players:GetPlayers()) do
+	if player ~= LocalPlayer then
+		setupPlayer(player)
+	end
+end
+
+-- ADD ON-SCREEN CREDIT
+local StarterGui = game:GetService("StarterGui")
+local creditGui = Instance.new("ScreenGui")
+creditGui.Name = "ESP_CreditGUI"
+creditGui.ResetOnSpawn = false
+creditGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(0, 300, 0, 30)
+creditLabel.Position = UDim2.new(0, 10, 0, 10)
+creditLabel.BackgroundTransparency = 1
+creditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+creditLabel.TextStrokeTransparency = 0
+creditLabel.Font = Enum.Font.GothamBold
+creditLabel.TextScaled = true
+creditLabel.Text = "Made by: Meloten/Pokorenie nebes"
+creditLabel.Parent = creditGui
+   end,
+})
+
 local BlenderButton = MainTab:CreateButton({
    Name = "Blender Follow the player",
    Callback = function()
