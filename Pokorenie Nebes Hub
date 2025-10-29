@@ -49,7 +49,6 @@ local SafeZoneButton = MainTab:CreateButton({
    end,
 })
 
-
 local AimButton = MainTab:CreateButton({
    Name = "Auto aim",
    Callback = function()
