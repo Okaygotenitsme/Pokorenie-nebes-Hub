@@ -36,12 +36,276 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
+_G.SafeZoneClick = true
+
+function SafeZone()
+while _G.SafeZoneClick == true do
+    -- LocalScript inside StarterPlayerScripts
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+-- === SETTINGS ===
+local HEALTH_TRIGGER = 0.25      -- 25% HP
+local HEALTH_REMOVE = 0.7        -- 70% HP
+local SAFE_OFFSET = Vector3.new(0, 60, 0)
+local PLATFORM_SIZE = Vector3.new(200, 5, 200)
+local PLATFORM_COLOR = Color3.fromRGB(0, 255, 0)
+local PLATFORM_TRANSPARENCY = 0.6 -- semi-transparent
+local TELEPORT_DELAY = 0.15
+local STAY_RADIUS = 20
+local EXIT_KEY = Enum.KeyCode.G
+-- =================
+
+local safeBlock
+local stayCheckConnection
+local exitGui
+local confirmGui
+local creditsGui
+local onPlatform = false
+
+----------------------------------------------------
+-- UI HELPERS
+----------------------------------------------------
+local function createCredits()
+	if creditsGui then creditsGui:Destroy() end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "CreditsGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(0, 260, 0, 30)
+	text.Position = UDim2.new(1, -270, 1, -40)
+	text.BackgroundTransparency = 1
+	text.Text = "Made by: Meloten / Pokorenie nebes"
+	text.TextColor3 = Color3.fromRGB(255, 255, 255)
+	text.TextTransparency = 0.3
+	text.TextScaled = true
+	text.Font = Enum.Font.SourceSansBold
+	text.Parent = gui
+
+	creditsGui = gui
+end
+
+local function createConfirmDialog(onConfirm)
+	if confirmGui then confirmGui:Destroy() end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ConfirmExitGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(0, 250, 0, 140)
+	frame.Position = UDim2.new(0.5, -125, 0.5, -70)
+	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	frame.BackgroundTransparency = 0.1
+	frame.BorderSizePixel = 0
+	frame.Parent = gui
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1, -20, 0, 60)
+	text.Position = UDim2.new(0, 10, 0, 10)
+	text.BackgroundTransparency = 1
+	text.Text = "Are you sure you want to leave the platform?"
+	text.TextWrapped = true
+	text.TextColor3 = Color3.fromRGB(255, 255, 255)
+	text.TextScaled = true
+	text.Parent = frame
+
+	local yes = Instance.new("TextButton")
+	yes.Size = UDim2.new(0.45, 0, 0, 40)
+	yes.Position = UDim2.new(0.05, 0, 1, -50)
+	yes.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+	yes.TextColor3 = Color3.fromRGB(255, 255, 255)
+	yes.Text = "Yes"
+	yes.TextScaled = true
+	yes.Parent = frame
+
+	local no = Instance.new("TextButton")
+	no.Size = UDim2.new(0.45, 0, 0, 40)
+	no.Position = UDim2.new(0.5, 0, 1, -50)
+	no.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+	no.TextColor3 = Color3.fromRGB(255, 255, 255)
+	no.Text = "No"
+	no.TextScaled = true
+	no.Parent = frame
+
+	yes.MouseButton1Click:Connect(function()
+		gui:Destroy()
+		onConfirm(true)
+	end)
+
+	no.MouseButton1Click:Connect(function()
+		gui:Destroy()
+		onConfirm(false)
+	end)
+
+	confirmGui = gui
+end
+
+local function createExitButton(onPress)
+	if exitGui then exitGui:Destroy() end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "SafeExitGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 150, 0, 50)
+	button.Position = UDim2.new(0, 20, 0, 20) -- top-left
+	button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.TextScaled = true
+	button.Text = "Leave Platform"
+	button.Parent = gui
+
+	local dragging, dragStart, startPos
+	local function update(input)
+		local delta = input.Position - dragStart
+		button.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+	button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = button.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	button.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch) then
+			update(input)
+		end
+	end)
+
+	button.MouseButton1Click:Connect(function()
+		createConfirmDialog(function(confirm)
+			if confirm then
+				onPress()
+			end
+		end)
+	end)
+
+	exitGui = gui
+end
+
+----------------------------------------------------
+-- PLATFORM LOGIC
+----------------------------------------------------
+
+local function removeSafeBlock()
+	if safeBlock then safeBlock:Destroy() safeBlock = nil end
+	if stayCheckConnection then stayCheckConnection:Disconnect() stayCheckConnection = nil end
+	if exitGui then exitGui:Destroy() exitGui = nil end
+	if confirmGui then confirmGui:Destroy() confirmGui = nil end
+	onPlatform = false
+end
+
+local function createSafeBlock(position)
+	local part = Instance.new("Part")
+	part.Size = PLATFORM_SIZE
+	part.Anchored = true
+	part.CanCollide = true
+	part.Color = PLATFORM_COLOR
+	part.Transparency = PLATFORM_TRANSPARENCY
+	part.Material = Enum.Material.ForceField
+	part.Name = "SafeBlock"
+	part.CFrame = CFrame.new(position)
+	part.Parent = workspace
+	return part
+end
+
+local function teleportToPlatform(char)
+	local root = char:WaitForChild("HumanoidRootPart")
+	local safePosition = root.Position + SAFE_OFFSET
+	if not safeBlock then
+		safeBlock = createSafeBlock(safePosition)
+	end
+	task.wait(TELEPORT_DELAY)
+	root.CFrame = CFrame.new(safePosition + Vector3.new(0, PLATFORM_SIZE.Y / 2 + 3, 0))
+	createExitButton(function()
+		removeSafeBlock()
+	end)
+	onPlatform = true
+
+	stayCheckConnection = RunService.Heartbeat:Connect(function()
+		if not safeBlock or not char.Parent then return end
+		local dist = (root.Position - safeBlock.Position).Magnitude
+		if dist > STAY_RADIUS then
+			root.CFrame = CFrame.new(safeBlock.Position + Vector3.new(0, PLATFORM_SIZE.Y / 2 + 3, 0))
+		end
+	end)
+end
+
+local function onCharacterAdded(char)
+	local humanoid = char:WaitForChild("Humanoid")
+	onPlatform = false
+
+	humanoid.HealthChanged:Connect(function(health)
+		local ratio = health / humanoid.MaxHealth
+		if ratio <= HEALTH_TRIGGER and not onPlatform then
+			teleportToPlatform(char)
+		end
+		if ratio >= HEALTH_REMOVE then
+			removeSafeBlock()
+		end
+	end)
+end
+
+----------------------------------------------------
+-- INPUT HANDLING
+----------------------------------------------------
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == EXIT_KEY and onPlatform and not confirmGui then
+		createConfirmDialog(function(confirm)
+			if confirm then
+				removeSafeBlock()
+			end
+		end)
+	end
+end)
+
+-- INIT
+if player.Character then onCharacterAdded(player.Character) end
+player.CharacterAdded:Connect(onCharacterAdded)
+createCredits()
+task.wait(0.00001)
+end
+end
 
 local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
 local MainSection = MainTab:CreateSection("Main")
 
 local PlayerTab = Window:CreateTab("Player", 4483362458) -- Title, Image
 local PlayerSection = PlayerTab:CreateSection("Player")
+
+local SafeZoneToggle = MainTab:CreateToggle({
+   Name = "Auto tp to safe zone",
+   CurrentValue = false,
+   Flag = "Safe zone", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(SafeV)
+_G.SafeZoneClick = SafeV
+SafeZone()
+   end,
+})
 
 local AimButton = MainTab:CreateButton({
    Name = "Auto aim",
