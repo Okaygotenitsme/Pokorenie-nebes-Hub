@@ -49,9 +49,19 @@ local SafeZoneButton = MainTab:CreateButton({
    end,
 })
 
+local BellowButton = MainTab:CreateButton({
+   Name = "Follow from below",
+   Callback = function()
+     loadstring(game:HttpGet("https://pastebin.com/QuPbjdgw"))()
+   end,
+})
+
 local NoStunButton = MainTab:CreateButton({
-   Name = "No Stun"
-   Callback= function()
+   Name = "No stun",
+   Callback = function()
+     -- NoStun Script (LocalScript in StarterPlayerScripts)
+-- Prevents player from being stunned by constantly resetting movement and state
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
@@ -130,7 +140,12 @@ end
 
 -- CREATE BILLBOARD (NAME + HEALTH)
 local function createBillboard(player, humanoid)
-	local billboard = Instance.new("BillboardGui")
+	local billbolocal SafeZoneButton = MainTab:CreateButton({
+   Name = "Tp to safe zone",
+   Callback = function()
+     loadstring(game:HttpGet("https://pastebin.com/raw/LfHpYe49"))()
+   end,
+})ard = Instance.new("BillboardGui")
 	billboard.Name = player.Name .. "_Billboard"
 	billboard.AlwaysOnTop = true
 	billboard.Size = UDim2.new(0, 200, 0, 40)
