@@ -49,6 +49,35 @@ local SafeZoneButton = MainTab:CreateButton({
    end,
 })
 
+local NoStunButton = MainTab:CreateButton({
+   Name = "No Stun"
+   Callback= function()
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+RunService.RenderStepped:Connect(function()
+	local char = player.Character
+	if char then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			-- Always keep normal movement
+			hum.WalkSpeed = 27
+			hum.JumpPower = 50
+			hum.AutoRotate = true
+			
+			-- Cancel certain states that cause stun
+			if hum.PlatformStand or hum.Sit or hum:GetState() == Enum.HumanoidStateType.FallingDown 
+				or hum:GetState() == Enum.HumanoidStateType.Ragdoll 
+				or hum:GetState() == Enum.HumanoidStateType.Physics then
+				hum:ChangeState(Enum.HumanoidStateType.Running)
+			end
+		end
+	end
+end)
+   end,
+})
+
 local AimButton = MainTab:CreateButton({
    Name = "Auto aim",
    Callback = function()
