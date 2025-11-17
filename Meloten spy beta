@@ -1,9 +1,10 @@
 -- Ultimate Dev Console
--- LocalPlayer Only
--- Tabs: Animation | Remote
+-- Place this LocalScript in StarterPlayerScripts
 
 local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+
 local lp = Players.LocalPlayer
 local char = lp.Character or lp.CharacterAdded:Wait()
 local hum = char:WaitForChild("Humanoid")
@@ -12,38 +13,41 @@ local hum = char:WaitForChild("Humanoid")
 local gui = Instance.new("ScreenGui")
 gui.Name = "UltimateDevConsole"
 gui.ResetOnSpawn = false
-gui.Parent = game:GetService("CoreGui")
+gui.Parent = CoreGui
 
--- Main Frame
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 480, 0, 360)
-main.Position = UDim2.new(0, 50, 0, 120)
-main.BackgroundColor3 = Color3.fromRGB(30,30,30)
-main.ClipsDescendants = true
-main.Parent = gui
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,10)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 480, 0, 350)
+mainFrame.Position = UDim2.new(0, 50, 0, 100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(28,28,28)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = gui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,12)
 
--- Title + Drag
+-- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,36)
 title.BackgroundTransparency = 1
-title.Text = "🛠 Ultimate Dev Console"
-title.TextColor3 = Color3.new(1,1,1)
+title.Text = "🛠️ Ultimate Dev Console"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
-title.Parent = main
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Parent = mainFrame
 
--- Drag function
-local dragging, dragInput, dragStart, startPos
+-- Dragging
+local dragging = false
+local dragInput, dragStart, startPos
+
 local function update(input)
 	local delta = input.Position - dragStart
-	main.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
+	mainFrame.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
 end
+
 title.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStart = input.Position
-		startPos = main.AbsolutePosition
+		startPos = mainFrame.AbsolutePosition
+
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
@@ -51,64 +55,207 @@ title.InputBegan:Connect(function(input)
 		end)
 	end
 end)
+
 title.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and input == dragInput then update(input) end
+	if dragging and input == dragInput then
+		update(input)
+	end
 end)
 
--- Tabs
-local tabs = Instance.new("Frame")
-tabs.Size = UDim2.new(1,0,0,36)
-tabs.Position = UDim2.new(0,0,0,36)
-tabs.BackgroundTransparency = 1
-tabs.Parent = main
+-- Tabs container
+local tabsFrame = Instance.new("Frame")
+tabsFrame.Size = UDim2.new(1,0,1,-36)
+tabsFrame.Position = UDim2.new(0,0,0,36)
+tabsFrame.BackgroundTransparency = 1
+tabsFrame.Parent = mainFrame
 
-local tabAnim = Instance.new("TextButton")
-tabAnim.Text = "Animation"
-tabAnim.Size = UDim2.new(0.5,0,1,0)
-tabAnim.Font = Enum.Font.GothamBold
-tabAnim.TextColor3 = Color3.fromRGB(200,200,200)
-tabAnim.TextSize = 16
-tabAnim.BackgroundTransparency = 1
-tabAnim.Parent = tabs
+local tabButtons = Instance.new("Frame")
+tabButtons.Size = UDim2.new(1,0,0,30)
+tabButtons.BackgroundTransparency = 1
+tabButtons.Parent = tabsFrame
 
-local tabRemote = Instance.new("TextButton")
-tabRemote.Text = "Remote"
-tabRemote.Size = UDim2.new(0.5,0,1,0)
-tabRemote.Position = UDim2.new(0.5,0,0,0)
-tabRemote.Font = Enum.Font.GothamBold
-tabRemote.TextColor3 = Color3.fromRGB(120,120,120)
-tabRemote.TextSize = 16
-tabRemote.BackgroundTransparency = 1
-tabRemote.Parent = tabs
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+tabLayout.Padding = UDim.new(0,6)
+tabLayout.Parent = tabButtons
 
--- ScrollFrames
-local scrollAnim = Instance.new("ScrollingFrame")
-scrollAnim.Size = UDim2.new(1,-20,1,-72)
-scrollAnim.Position = UDim2.new(0,10,0,72)
-scrollAnim.BackgroundTransparency = 1
-scrollAnim.BorderSizePixel = 0
-scrollAnim.CanvasSize = UDim2.new()
-scrollAnim.ScrollBarThickness = 6
-scrollAnim.Parent = main
+local function makeTabButton(name)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0,120,1,0)
+	btn.Text = name
+	btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.AutoButtonColor = true
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+	btn.Parent = tabButtons
+	return btn
+end
 
-local scrollRemote = scrollAnim:Clone()
-scrollRemote.Parent = main
-scrollRemote.Visible = false
+local animTabBtn = makeTabButton("Animation Spy")
+local remoteTabBtn = makeTabButton("Remote Spy")
 
--- Buttons: Hide, Reset, Close
-local function makeBtn(text, color, posX)
-	local b = Instance.new("TextButton")
-	b.Text = text
-	b.Size = UDim2.new(0,70,0,28)
-	b.Position = UDim2.new(0,posX,0,4)
-	b.BackgroundColor3 = color
-	b.TextColor3 = Color3.new(1,1,1)
-	b.Font = Enum.Font.GothamBold
+-- Pages
+local pages = {}
+
+-- -----------------------------
+-- Animation Spy Page
+-- -----------------------------
+local animPage = Instance.new("Frame")
+animPage.Size = UDim2.new(1,0,1,-30)
+animPage.Position = UDim2.new(0,0,0,30)
+animPage.BackgroundTransparency = 1
+animPage.Visible = true
+animPage.Parent = tabsFrame
+pages["Animation Spy"] = animPage
+
+-- Scroll for animations
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1,-20,1,-20)
+scroll.Position = UDim2.new(0,10,0,10)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.CanvasSize = UDim2.new()
+scroll.ScrollBarThickness = 6
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = animPage
+
+local layout = Instance.new("UIListLayout")
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0,4)
+layout.Parent = scroll
+
+local seenAnims = {}
+
+local function addAnimRow(name,id)
+	if seenAnims[id] then return end
+	seenAnims[id] = true
+
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1,0,0,30)
+	row.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	row.Parent = scroll
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0.5,-4,1,0)
+	label.Position = UDim2.new(0,2,0,0)
+	label.BackgroundTransparency = 1
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(255,255,255)
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = row
+
+	local copyBtn = Instance.new("TextButton")
+	copyBtn.Size = UDim2.new(0.2,-4,0.8,0)
+	copyBtn.Position = UDim2.new(0.5,2,0.1,0)
+	copyBtn.BackgroundColor3 = Color3.fromRGB(85,170,255)
+	copyBtn.Text = "📋"
+	copyBtn.Font = Enum.Font.GothamBold
+	copyBtn.TextSize = 14
+	copyBtn.TextColor3 = Color3.new(1,1,1)
+	copyBtn.Parent = row
+	Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(1,0)
+	copyBtn.MouseButton1Click:Connect(function()
+		setclipboard(id)
+	end)
+
+	local playBtn = Instance.new("TextButton")
+	playBtn.Size = UDim2.new(0.2,-4,0.8,0)
+	playBtn.Position = UDim2.new(0.7,2,0.1,0)
+	playBtn.BackgroundColor3 = Color3.fromRGB(100,200,100)
+	playBtn.Text = "▶"
+	playBtn.Font = Enum.Font.GothamBold
+	playBtn.TextSize = 14
+	playBtn.TextColor3 = Color3.new(1,1,1)
+	playBtn.Parent = row
+	Instance.new("UICorner", playBtn).CornerRadius = UDim.new(1,0)
+	playBtn.MouseButton1Click:Connect(function()
+		local anim = Instance.new("Animation")
+		anim.AnimationId = id
+		local track = hum:LoadAnimation(anim)
+		track:Play()
+	end)
+end
+
+hum.AnimationPlayed:Connect(function(track)
+	local anim = track.Animation
+	if anim and anim.AnimationId then
+		addAnimRow(anim.Name ~= "" and anim.Name or "Animation", anim.AnimationId)
+	end
+end)
+
+-- -----------------------------
+-- Remote Spy Page
+-- -----------------------------
+local remotePage = Instance.new("Frame")
+remotePage.Size = UDim2.new(1,0,1,-30)
+remotePage.Position = UDim2.new(0,0,0,30)
+remotePage.BackgroundTransparency = 1
+remotePage.Visible = false
+remotePage.Parent = tabsFrame
+pages["Remote Spy"] = remotePage
+
+local remoteScroll = Instance.new("ScrollingFrame")
+remoteScroll.Size = UDim2.new(1,-20,1,-20)
+remoteScroll.Position = UDim2.new(0,10,0,10)
+remoteScroll.BackgroundTransparency = 1
+remoteScroll.BorderSizePixel = 0
+remoteScroll.ScrollBarThickness = 6
+remoteScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+remoteScroll.Parent = remotePage
+
+local remoteLayout = Instance.new("UIListLayout")
+remoteLayout.SortOrder = Enum.SortOrder.LayoutOrder
+remoteLayout.Padding = UDim.new(0,4)
+remoteLayout.Parent = remoteScroll
+
+-- Simple remote spy hook
+local seenRemotes = {}
+local mt = getrawmetatable(game)
+local oldIndex = mt.__namecall
+setreadonly(mt,false)
+mt.__namecall = newcclosure(function(self,...)
+	local method = getnamecallmethod()
+	local args = {...}
+	if method == "FireServer" and typeof(self)=="Instance" and self:IsA("RemoteEvent") then
+		if not seenRemotes[self] then
+			seenRemotes[self] = true
+			local row = Instance.new("TextLabel")
+			row.Size = UDim2.new(1,0,0,30)
+			row.BackgroundColor3 = Color3.fromRGB(50,50,50)
+			row.TextColor3 = Color3.fromRGB(255,255,255)
+			row.Text = self.Name
+			row.Font = Enum.Font.Gotham
+			row.TextSize = 14
+			row.Parent = remoteScroll
+			Instance.new("UICorner", row).CornerRadius = UDim.new(0,6)
+		end
+	end
+	return oldIndex(self,...)
+end)
+setreadonly(mt,true)
+
+-- -----------------------------
+-- Tab switching
+-- -----------------------------
+for tabName, tabBtn in pairs({["Animation Spy"]=animTabBtn, ["Remote Spy"]=remoteTabBtn}) do
+	tabBtn.MouseButton1Click:Connect(function()
+		for name,page in pairs(pages) do
+			page.Visible = (name == tabName)
+		end
+	end)
+end	b.Font = Enum.Font.GothamBold
 	b.TextSize = 14
 	b.BorderSizePixel = 0
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
