@@ -1,0 +1,193 @@
+-- Ultimate Dev Console
+-- LocalPlayer Only
+-- Tabs: Animation | Remote
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "UltimateDevConsole"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
+
+-- Main Frame
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 480, 0, 360)
+main.Position = UDim2.new(0, 50, 0, 120)
+main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+main.ClipsDescendants = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,10)
+
+-- Title + Drag
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,36)
+title.BackgroundTransparency = 1
+title.Text = "🛠 Ultimate Dev Console"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = main
+
+-- Drag function
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+	local delta = input.Position - dragStart
+	main.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
+end
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.AbsolutePosition
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+title.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input == dragInput then update(input) end
+end)
+
+-- Tabs
+local tabs = Instance.new("Frame")
+tabs.Size = UDim2.new(1,0,0,36)
+tabs.Position = UDim2.new(0,0,0,36)
+tabs.BackgroundTransparency = 1
+tabs.Parent = main
+
+local tabAnim = Instance.new("TextButton")
+tabAnim.Text = "Animation"
+tabAnim.Size = UDim2.new(0.5,0,1,0)
+tabAnim.Font = Enum.Font.GothamBold
+tabAnim.TextColor3 = Color3.fromRGB(200,200,200)
+tabAnim.TextSize = 16
+tabAnim.BackgroundTransparency = 1
+tabAnim.Parent = tabs
+
+local tabRemote = Instance.new("TextButton")
+tabRemote.Text = "Remote"
+tabRemote.Size = UDim2.new(0.5,0,1,0)
+tabRemote.Position = UDim2.new(0.5,0,0,0)
+tabRemote.Font = Enum.Font.GothamBold
+tabRemote.TextColor3 = Color3.fromRGB(120,120,120)
+tabRemote.TextSize = 16
+tabRemote.BackgroundTransparency = 1
+tabRemote.Parent = tabs
+
+-- ScrollFrames
+local scrollAnim = Instance.new("ScrollingFrame")
+scrollAnim.Size = UDim2.new(1,-20,1,-72)
+scrollAnim.Position = UDim2.new(0,10,0,72)
+scrollAnim.BackgroundTransparency = 1
+scrollAnim.BorderSizePixel = 0
+scrollAnim.CanvasSize = UDim2.new()
+scrollAnim.ScrollBarThickness = 6
+scrollAnim.Parent = main
+
+local scrollRemote = scrollAnim:Clone()
+scrollRemote.Parent = main
+scrollRemote.Visible = false
+
+-- Buttons: Hide, Reset, Close
+local function makeBtn(text, color, posX)
+	local b = Instance.new("TextButton")
+	b.Text = text
+	b.Size = UDim2.new(0,70,0,28)
+	b.Position = UDim2.new(0,posX,0,4)
+	b.BackgroundColor3 = color
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.BorderSizePixel = 0
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
+	b.Parent = main
+	return b
+end
+
+local hideBtn = makeBtn("Hide", Color3.fromRGB(120,120,120), 380)
+local resetBtn = makeBtn("Reset", Color3.fromRGB(85,170,255), 300)
+local closeBtn = makeBtn("Close", Color3.fromRGB(200,60,60), 220)
+
+-- Tab switching
+tabAnim.MouseButton1Click:Connect(function()
+	scrollAnim.Visible = true
+	scrollRemote.Visible = false
+	tabAnim.TextColor3 = Color3.fromRGB(200,200,200)
+	tabRemote.TextColor3 = Color3.fromRGB(120,120,120)
+end)
+tabRemote.MouseButton1Click:Connect(function()
+	scrollAnim.Visible = false
+	scrollRemote.Visible = true
+	tabAnim.TextColor3 = Color3.fromRGB(120,120,120)
+	tabRemote.TextColor3 = Color3.fromRGB(200,200,200)
+end)
+
+-- Hide / Minimize
+local minimized = false
+local miniBtn
+hideBtn.MouseButton1Click:Connect(function()
+	if minimized then
+		minimized = false
+		main.Size = UDim2.new(0,480,0,360)
+		if miniBtn then miniBtn:Destroy() end
+		return
+	end
+	minimized = true
+	main.Size = UDim2.new(0,160,0,36)
+	miniBtn = Instance.new("TextButton")
+	miniBtn.Size = UDim2.new(1,0,1,0)
+	miniBtn.Text = "🛠 Ultimate Dev Console"
+	miniBtn.TextColor3 = Color3.new(1,1,1)
+	miniBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	miniBtn.Font = Enum.Font.GothamBold
+	miniBtn.TextSize = 16
+	Instance.new("UICorner", miniBtn).CornerRadius = UDim.new(0,8)
+	miniBtn.Parent = main
+	miniBtn.MouseButton1Click:Connect(function()
+		minimized = false
+		main.Size = UDim2.new(0,480,0,360)
+		miniBtn:Destroy()
+	end)
+end)
+
+-- Close
+closeBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+-- Reset
+resetBtn.MouseButton1Click:Connect(function()
+	scrollAnim:ClearAllChildren()
+	scrollRemote:ClearAllChildren()
+end)
+
+-- Animation Spy Logging (сохраняем как было)
+local seen = {}
+hum.AnimationPlayed:Connect(function(track)
+	local anim = track.Animation
+	if anim and anim.AnimationId and not seen[anim.AnimationId] then
+		seen[anim.AnimationId] = true
+		local row = Instance.new("TextLabel")
+		row.Size = UDim2.new(1,0,0,28)
+		row.BackgroundColor3 = Color3.fromRGB(45,45,45)
+		row.TextColor3 = Color3.new(1,1,1)
+		row.Text = anim.Name ~= "" and anim.Name or "Animation: " .. anim.AnimationId
+		row.Font = Enum.Font.Gotham
+		row.TextSize = 14
+		row.TextXAlignment = Enum.TextXAlignment.Left
+		row.Parent = scrollAnim
+		scrollAnim.CanvasSize = UDim2.new(0,0,0,#scrollAnim:GetChildren()*32)
+	end
+end)
