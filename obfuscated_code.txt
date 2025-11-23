@@ -1,12 +1,10 @@
 
 --[[
 
+Bro, did you think you could steal my code?
+
   This code has been obfuscated by Secrovia.
   Secrovia is a Lua obfuscator that protects your Lua code from reverse engineering and tampering.
-  Public license ID: FUAT-OCMP-GB7C-XDXN-MEDH-IUUC-MCIG-O2VM
-  This license ID is used to verify the integrity of the obfuscated code.
-
-  Secrovia LLC - https://secrovia.com
 
 ]]
 
