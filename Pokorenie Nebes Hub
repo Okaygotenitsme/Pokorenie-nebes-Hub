@@ -52,7 +52,7 @@ local SafeZoneButton = MainTab:CreateButton({
 local BellowButton = MainTab:CreateButton({
    Name = "Follow from below",
    Callback = function()
-     loadstring(game:HttpGet("https://pastebin.com/QuPbjdgw"))()
+     loadstring(game:HttpGet("https://pastebin.com/raw/QuPbjdgw"))()
    end,
 })
 
