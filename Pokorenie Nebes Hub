@@ -49,6 +49,13 @@ local SafeZoneButton = MainTab:CreateButton({
    end,
 })
 
+local AniLoggerButton = MainTab:CreateButton({
+   Name = "Animation logger",
+   Callback = function()
+     loadstring(game:HttpGet("https://pastebin.com/raw/zMyE6cak"))()
+   end,
+})
+
 local BellowButton = MainTab:CreateButton({
    Name = "Follow from below",
    Callback = function()
