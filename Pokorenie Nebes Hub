@@ -1,45 +1,45 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "Pokorenie nebes Hub | The Strongest Battlegrounds",
-   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   Icon = 0,
    LoadingTitle = "Pokorenie nebes Hub",
    LoadingSubtitle = "by Meloten",
-   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
-   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+   ShowText = "Rayfield",
+   Theme = "Default",
 
-   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+   ToggleUIKeybind = "K",
 
    DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+   DisableBuildWarnings = false,
 
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = nil, -- Create a custom folder for your hub/game
+      FolderName = nil,
       FileName = "Big Hub"
    },
 
    Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
    },
 
-   KeySystem = false, -- Set this to true to use our key system
+   KeySystem = false,
    KeySettings = {
       Title = "Untitled",
       Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
-      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
    }
 })
 
-local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
+local MainTab = Window:CreateTab("Main", 4483362458)
 local MainSection = MainTab:CreateSection("Main")
 
-local PlayerTab = Window:CreateTab("Player", 4483362458) -- Title, Image
+local PlayerTab = Window:CreateTab("Player", 4483362458)
 local PlayerSection = PlayerTab:CreateSection("Player")
 
 local SafeZoneButton = MainTab:CreateButton({
@@ -66,8 +66,6 @@ local BellowButton = MainTab:CreateButton({
 local NoStunButton = MainTab:CreateButton({
    Name = "No stun",
    Callback = function()
-     -- NoStun Script (LocalScript in StarterPlayerScripts)
--- Prevents player from being stunned by constantly resetting movement and state
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -78,12 +76,10 @@ RunService.RenderStepped:Connect(function()
 	if char then
 		local hum = char:FindFirstChildOfClass("Humanoid")
 		if hum then
-			-- Always keep normal movement
 			hum.WalkSpeed = 27
 			hum.JumpPower = 50
 			hum.AutoRotate = true
 			
-			-- Cancel certain states that cause stun
 			if hum.PlatformStand or hum.Sit or hum:GetState() == Enum.HumanoidStateType.FallingDown 
 				or hum:GetState() == Enum.HumanoidStateType.Ragdoll 
 				or hum:GetState() == Enum.HumanoidStateType.Physics then
@@ -110,27 +106,23 @@ local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- SETTINGS
 local CUBE_COLOR = Color3.fromRGB(255, 0, 0)
 local LINE_COLOR = Color3.fromRGB(255, 0, 0)
 local LINE_THICKNESS = 0.2
 local CUBE_SIZE = Vector3.new(5, 6, 3)
 
--- FOLDER FOR VISUALS
 local visualsFolder = workspace:FindFirstChild("PlayerVisuals") or Instance.new("Folder")
 visualsFolder.Name = "PlayerVisuals"
 visualsFolder.Parent = workspace
 
 local visuals = {}
 
--- UTILITY FUNCTION
 local function safeDestroy(obj)
 	if obj and obj.Parent then
 		obj:Destroy()
 	end
 end
 
--- LOCAL ATTACHMENT FOR BEAMS
 local function ensureLocalAttachment()
 	local char = LocalPlayer.Character
 	if not char then return nil end
@@ -145,7 +137,6 @@ local function ensureLocalAttachment()
 	return att
 end
 
--- CREATE BILLBOARD (NAME + HEALTH)
 local function createBillboard(player, humanoid)
 	local billbolocal SafeZoneButton = MainTab:CreateButton({
    Name = "Tp to safe zone",
@@ -187,7 +178,6 @@ local function createBillboard(player, humanoid)
 	return billboard
 end
 
--- REMOVE OLD VISUALS
 local function removeVisualsForPlayer(player)
 	local v = visuals[player]
 	if not v then return end
@@ -195,7 +185,6 @@ local function removeVisualsForPlayer(player)
 	visuals[player] = nil
 end
 
--- CREATE VISUALS FOR PLAYER
 local function createVisualsForPlayer(player)
 	if player == LocalPlayer then return end
 
@@ -205,7 +194,6 @@ local function createVisualsForPlayer(player)
 
 	removeVisualsForPlayer(player)
 
-	-- CUBE (BoxHandleAdornment)
 	local cubeAdornment = Instance.new("BoxHandleAdornment")
 	cubeAdornment.Name = player.Name .. "_ESP_Cube"
 	cubeAdornment.Adornee = root
@@ -216,7 +204,6 @@ local function createVisualsForPlayer(player)
 	cubeAdornment.ZIndex = 10
 	cubeAdornment.Parent = visualsFolder
 
-	-- BEAM
 	local localAttach = ensureLocalAttachment()
 	local attachCube = Instance.new("Attachment")
 	attachCube.Parent = root
@@ -233,15 +220,12 @@ local function createVisualsForPlayer(player)
 	beam.LightEmission = 1
 	beam.Parent = visualsFolder
 
-	-- BILLBOARD
 	local billboard = createBillboard(player, humanoid)
 	billboard.Parent = root
 
-	-- STORE VISUALS
 	visuals[player] = { cube = cubeAdornment, beam = beam, billboard = billboard }
 end
 
--- HANDLE LOCAL PLAYER RESPAWN (BEAM ATTACHMENT)
 LocalPlayer.CharacterAdded:Connect(function()
 	task.wait(0.2)
 	local localAttach = ensureLocalAttachment()
@@ -252,7 +236,6 @@ LocalPlayer.CharacterAdded:Connect(function()
 	end
 end)
 
--- SETUP PLAYER (JOIN + RESPAWN)
 local function setupPlayer(player)
 	player.CharacterAdded:Connect(function()
 		task.wait(0.1)
@@ -266,18 +249,15 @@ local function setupPlayer(player)
 	end
 end
 
--- PLAYER EVENTS
 Players.PlayerAdded:Connect(setupPlayer)
 Players.PlayerRemoving:Connect(removeVisualsForPlayer)
 
--- INITIALIZE EXISTING PLAYERS
 for _, player in ipairs(Players:GetPlayers()) do
 	if player ~= LocalPlayer then
 		setupPlayer(player)
 	end
 end
 
--- ADD ON-SCREEN CREDIT
 local StarterGui = game:GetService("StarterGui")
 local creditGui = Instance.new("ScreenGui")
 creditGui.Name = "ESP_CreditGUI"
@@ -338,7 +318,7 @@ local SpeedSlider = PlayerTab:CreateSlider({
    Increment = 1,
    Suffix = "Speed power",
    CurrentValue = 16,
-   Flag = "Flag2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "Flag2",
    Callback = function(Value)
       game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
    end,
@@ -350,8 +330,9 @@ local JumpSlider = PlayerTab:CreateSlider({
    Increment = 1,
    Suffix = "Jump power",
    CurrentValue = 1,
-   Flag = "Flag1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "Flag1",
    Callback = function(Value)
       game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
    end,
 })
+ 
