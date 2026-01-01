@@ -307,7 +307,7 @@ local BlenderButton = MainTab:CreateButton({
 local FollowerButton = MainTab:CreateButton({
    Name = "Follow the player",
    Callback = function()
-     loadstring(game:HttpGet("https://pastebin.com/raw/t7N9926H"))()
+     loadstring(game:HttpGet("https://pastebin.com/raw/85U2e4Aa"))()
    end,
 })
 
