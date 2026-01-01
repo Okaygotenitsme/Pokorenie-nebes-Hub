@@ -1,3 +1,1 @@
-getgenv().DBZEnvEnabled = true -- better color (dont remove)
-getgenv().GokuSSJFit = true -- true or false if you want the fit (dont remove)
-loadstring(game:HttpGet("https://pastebin.com/raw/32Vs1U6V"))()
+Bro
