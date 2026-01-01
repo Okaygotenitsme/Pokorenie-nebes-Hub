@@ -98,7 +98,7 @@ end)
 local AimButton = MainTab:CreateButton({
    Name = "Auto aim",
    Callback = function()
-     loadstring(game:HttpGet("https://pastebin.com/raw/CdWYSbRc"))()
+     loadstring(game:HttpGet("https://pastebin.com/raw/HZshKEP1"))()
    end,
 })
 
