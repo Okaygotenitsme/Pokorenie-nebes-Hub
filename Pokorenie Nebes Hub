@@ -45,7 +45,7 @@ local PlayerSection = PlayerTab:CreateSection("Player")
 local SafeZoneButton = MainTab:CreateButton({
    Name = "Tp to safe zone",
    Callback = function()
-     loadstring(game:HttpGet("https://pastebin.com/raw/LfHpYe49"))()
+     loadstring(game:HttpGet("https://raw.githubusercontent.com/Okaygotenitsme/Pokorenie-nebes-Hub/refs/heads/main/Auto%20Safe%20Zone%20tsb.lua"))()
    end,
 })
 
