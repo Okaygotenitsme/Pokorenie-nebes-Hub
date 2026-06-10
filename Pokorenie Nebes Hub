@@ -1,29 +1,24 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
+local bruh = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local mywindow = bruh:CreateWindow({
    Name = "Pokorenie nebes Hub | The Strongest Battlegrounds",
    Icon = 0,
    LoadingTitle = "Pokorenie nebes Hub",
    LoadingSubtitle = "by Meloten",
    ShowText = "Rayfield",
    Theme = "Default",
-
    ToggleUIKeybind = "K",
-
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false,
-
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil,
       FileName = "Big Hub"
    },
-
    Discord = {
       Enabled = false,
       Invite = "noinvitelink",
       RememberJoins = true
    },
-
    KeySystem = false,
    KeySettings = {
       Title = "Untitled",
@@ -36,303 +31,293 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local MainTab = Window:CreateTab("Main", 4483362458)
-local MainSection = MainTab:CreateSection("Main")
+local tab1 = mywindow:CreateTab("Main", 4483362458)
+local sec1 = tab1:CreateSection("Main")
 
-local PlayerTab = Window:CreateTab("Player", 4483362458)
-local PlayerSection = PlayerTab:CreateSection("Player")
+local tab2 = mywindow:CreateTab("Player", 4483362458)
+local sec2 = tab2:CreateSection("Player")
 
-local SafeZoneButton = MainTab:CreateButton({
+local safezone_kek = tab1:CreateButton({
    Name = "Tp to safe zone",
    Callback = function()
      loadstring(game:HttpGet("https://raw.githubusercontent.com/Okaygotenitsme/Pokorenie-nebes-Hub/refs/heads/main/Auto%20Safe%20Zone%20tsb.lua"))()
    end,
 })
 
-local AniLoggerButton = MainTab:CreateButton({
+local animlog_lol = tab1:CreateButton({
    Name = "Animation logger",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/zMyE6cak"))()
    end,
 })
 
-local BellowButton = MainTab:CreateButton({
+local belowfollow_xd = tab1:CreateButton({
    Name = "Follow from below",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/QuPbjdgw"))()
    end,
 })
 
-local NoStunButton = MainTab:CreateButton({
+local nostun_poggers = tab1:CreateButton({
    Name = "No stun",
    Callback = function()
+      local plrsvc = game:GetService("Players")
+      local runsvc = game:GetService("RunService")
+      local myguy = plrsvc.LocalPlayer
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-
-RunService.RenderStepped:Connect(function()
-	local char = player.Character
-	if char then
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum.WalkSpeed = 27
-			hum.JumpPower = 50
-			hum.AutoRotate = true
-			
-			if hum.PlatformStand or hum.Sit or hum:GetState() == Enum.HumanoidStateType.FallingDown 
-				or hum:GetState() == Enum.HumanoidStateType.Ragdoll 
-				or hum:GetState() == Enum.HumanoidStateType.Physics then
-				hum:ChangeState(Enum.HumanoidStateType.Running)
-			end
-		end
-	end
-end)
+      runsvc.RenderStepped:Connect(function()
+         local mychar = myguy.Character
+         if mychar then
+            local myhum = mychar:FindFirstChildOfClass("Humanoid")
+            if myhum then
+               myhum.WalkSpeed = 27
+               myhum.JumpPower = 50
+               myhum.AutoRotate = true
+               if myhum.PlatformStand or myhum.Sit or myhum:GetState() == Enum.HumanoidStateType.FallingDown
+                  or myhum:GetState() == Enum.HumanoidStateType.Ragdoll
+                  or myhum:GetState() == Enum.HumanoidStateType.Physics then
+                  myhum:ChangeState(Enum.HumanoidStateType.Running)
+               end
+            end
+         end
+      end)
    end,
 })
 
-local AimButton = MainTab:CreateButton({
+local aimbot_hehe = tab1:CreateButton({
    Name = "Auto aim",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/HZshKEP1"))()
    end,
 })
 
-local ESPButton = MainTab:CreateButton({
+local esp_thing = tab1:CreateButton({
    Name = "ESP",
    Callback = function()
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+      local plrsvc2 = game:GetService("Players")
+      local runsvc2 = game:GetService("RunService")
+      local myself = plrsvc2.LocalPlayer
 
-local LocalPlayer = Players.LocalPlayer
+      local boxcolor = Color3.fromRGB(255, 0, 0)
+      local linecolor = Color3.fromRGB(255, 0, 0)
+      local linethick = 0.2
+      local boxsize = Vector3.new(5, 6, 3)
 
-local CUBE_COLOR = Color3.fromRGB(255, 0, 0)
-local LINE_COLOR = Color3.fromRGB(255, 0, 0)
-local LINE_THICKNESS = 0.2
-local CUBE_SIZE = Vector3.new(5, 6, 3)
+      local myfolder = workspace:FindFirstChild("PlayerVisuals") or Instance.new("Folder")
+      myfolder.Name = "PlayerVisuals"
+      myfolder.Parent = workspace
 
-local visualsFolder = workspace:FindFirstChild("PlayerVisuals") or Instance.new("Folder")
-visualsFolder.Name = "PlayerVisuals"
-visualsFolder.Parent = workspace
+      local stufftable = {}
 
-local visuals = {}
+      local function killobj(obj)
+         if obj and obj.Parent then
+            obj:Destroy()
+         end
+      end
 
-local function safeDestroy(obj)
-	if obj and obj.Parent then
-		obj:Destroy()
-	end
-end
+      local function getmyattach()
+         local mychar2 = myself.Character
+         if not mychar2 then return nil end
+         local myroot = mychar2:FindFirstChild("HumanoidRootPart")
+         if not myroot then return nil end
+         local myatt = myroot:FindFirstChild("ESP_LocalAttachment")
+         if not myatt then
+            myatt = Instance.new("Attachment")
+            myatt.Name = "ESP_LocalAttachment"
+            myatt.Parent = myroot
+         end
+         return myatt
+      end
 
-local function ensureLocalAttachment()
-	local char = LocalPlayer.Character
-	if not char then return nil end
-	local root = char:FindFirstChild("HumanoidRootPart")
-	if not root then return nil end
-	local att = root:FindFirstChild("ESP_LocalAttachment")
-	if not att then
-		att = Instance.new("Attachment")
-		att.Name = "ESP_LocalAttachment"
-		att.Parent = root
-	end
-	return att
-end
+      local function makebillboard(whoplayer, whohum)
+         local bb = Instance.new("BillboardGui")
+         bb.Name = whoplayer.Name .. "_Billboard"
+         bb.AlwaysOnTop = true
+         bb.Size = UDim2.new(0, 200, 0, 40)
+         bb.StudsOffset = Vector3.new(0, 5, 0)
 
-local function createBillboard(player, humanoid)
-	local billbolocal SafeZoneButton = MainTab:CreateButton({
-   Name = "Tp to safe zone",
-   Callback = function()
-     loadstring(game:HttpGet("https://pastebin.com/raw/LfHpYe49"))()
-   end,
-})ard = Instance.new("BillboardGui")
-	billboard.Name = player.Name .. "_Billboard"
-	billboard.AlwaysOnTop = true
-	billboard.Size = UDim2.new(0, 200, 0, 40)
-	billboard.StudsOffset = Vector3.new(0, 5, 0)
+         local namelbl = Instance.new("TextLabel")
+         namelbl.BackgroundTransparency = 1
+         namelbl.Size = UDim2.new(1, 0, 0.5, 0)
+         namelbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+         namelbl.TextStrokeTransparency = 0
+         namelbl.Font = Enum.Font.GothamBold
+         namelbl.TextScaled = true
+         namelbl.Text = whoplayer.DisplayName
+         namelbl.Parent = bb
 
-	local nameLabel = Instance.new("TextLabel")
-	nameLabel.BackgroundTransparency = 1
-	nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
-	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	nameLabel.TextStrokeTransparency = 0
-	nameLabel.Font = Enum.Font.GothamBold
-	nameLabel.TextScaled = true
-	nameLabel.Text = player.DisplayName
-	nameLabel.Parent = billboard
+         local hplbl = Instance.new("TextLabel")
+         hplbl.BackgroundTransparency = 1
+         hplbl.Position = UDim2.new(0, 0, 0.5, 0)
+         hplbl.Size = UDim2.new(1, 0, 0.5, 0)
+         hplbl.TextColor3 = Color3.fromRGB(255, 80, 80)
+         hplbl.TextStrokeTransparency = 0
+         hplbl.Font = Enum.Font.GothamBold
+         hplbl.TextScaled = true
+         hplbl.Text = "Health: 0"
+         hplbl.Parent = bb
 
-	local healthLabel = Instance.new("TextLabel")
-	healthLabel.BackgroundTransparency = 1
-	healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
-	healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
-	healthLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-	healthLabel.TextStrokeTransparency = 0
-	healthLabel.Font = Enum.Font.GothamBold
-	healthLabel.TextScaled = true
-	healthLabel.Text = "Health: 0"
-	healthLabel.Parent = billboard
+         whohum.HealthChanged:Connect(function()
+            hplbl.Text = "Health: " .. math.floor(whohum.Health)
+         end)
+         hplbl.Text = "Health: " .. math.floor(whohum.Health)
 
-	humanoid.HealthChanged:Connect(function()
-		healthLabel.Text = "Health: " .. math.floor(humanoid.Health)
-	end)
-	healthLabel.Text = "Health: " .. math.floor(humanoid.Health)
+         return bb
+      end
 
-	return billboard
-end
+      local function removestuff(whoplayer)
+         local v = stufftable[whoplayer]
+         if not v then return end
+         for _, obj in pairs(v) do killobj(obj) end
+         stufftable[whoplayer] = nil
+      end
 
-local function removeVisualsForPlayer(player)
-	local v = visuals[player]
-	if not v then return end
-	for _, obj in pairs(v) do safeDestroy(obj) end
-	visuals[player] = nil
-end
+      local function addstuff(whoplayer)
+         if whoplayer == myself then return end
 
-local function createVisualsForPlayer(player)
-	if player == LocalPlayer then return end
+         local hischar = whoplayer.Character or whoplayer.CharacterAdded:Wait()
+         local hisroot = hischar:WaitForChild("HumanoidRootPart")
+         local hishum = hischar:WaitForChild("Humanoid")
 
-	local character = player.Character or player.CharacterAdded:Wait()
-	local root = character:WaitForChild("HumanoidRootPart")
-	local humanoid = character:WaitForChild("Humanoid")
+         removestuff(whoplayer)
 
-	removeVisualsForPlayer(player)
+         local mybox = Instance.new("BoxHandleAdornment")
+         mybox.Name = whoplayer.Name .. "_ESP_Cube"
+         mybox.Adornee = hisroot
+         mybox.AlwaysOnTop = true
+         mybox.Size = boxsize
+         mybox.Color3 = boxcolor
+         mybox.Transparency = 0.5
+         mybox.ZIndex = 10
+         mybox.Parent = myfolder
 
-	local cubeAdornment = Instance.new("BoxHandleAdornment")
-	cubeAdornment.Name = player.Name .. "_ESP_Cube"
-	cubeAdornment.Adornee = root
-	cubeAdornment.AlwaysOnTop = true
-	cubeAdornment.Size = CUBE_SIZE
-	cubeAdornment.Color3 = CUBE_COLOR
-	cubeAdornment.Transparency = 0.5
-	cubeAdornment.ZIndex = 10
-	cubeAdornment.Parent = visualsFolder
+         local myatt2 = getmyattach()
+         local hisatt = Instance.new("Attachment")
+         hisatt.Parent = hisroot
 
-	local localAttach = ensureLocalAttachment()
-	local attachCube = Instance.new("Attachment")
-	attachCube.Parent = root
+         local mybeam = Instance.new("Beam")
+         mybeam.Name = whoplayer.Name .. "_ESP_Beam"
+         mybeam.Attachment0 = hisatt
+         mybeam.Attachment1 = myatt2
+         mybeam.Color = ColorSequence.new(linecolor)
+         mybeam.Transparency = NumberSequence.new(0.3)
+         mybeam.Width0 = linethick
+         mybeam.Width1 = linethick
+         mybeam.FaceCamera = true
+         mybeam.LightEmission = 1
+         mybeam.Parent = myfolder
 
-	local beam = Instance.new("Beam")
-	beam.Name = player.Name .. "_ESP_Beam"
-	beam.Attachment0 = attachCube
-	beam.Attachment1 = localAttach
-	beam.Color = ColorSequence.new(LINE_COLOR)
-	beam.Transparency = NumberSequence.new(0.3)
-	beam.Width0 = LINE_THICKNESS
-	beam.Width1 = LINE_THICKNESS
-	beam.FaceCamera = true
-	beam.LightEmission = 1
-	beam.Parent = visualsFolder
+         local mybillboard = makebillboard(whoplayer, hishum)
+         mybillboard.Parent = hisroot
 
-	local billboard = createBillboard(player, humanoid)
-	billboard.Parent = root
+         stufftable[whoplayer] = { cube = mybox, beam = mybeam, billboard = mybillboard }
+      end
 
-	visuals[player] = { cube = cubeAdornment, beam = beam, billboard = billboard }
-end
+      myself.CharacterAdded:Connect(function()
+         task.wait(0.2)
+         local freshatt = getmyattach()
+         for _, v in pairs(stufftable) do
+            if v.beam then
+               v.beam.Attachment1 = freshatt
+            end
+         end
+      end)
 
-LocalPlayer.CharacterAdded:Connect(function()
-	task.wait(0.2)
-	local localAttach = ensureLocalAttachment()
-	for _, v in pairs(visuals) do
-		if v.beam then
-			v.beam.Attachment1 = localAttach
-		end
-	end
-end)
+      local function setupdude(whoplayer)
+         whoplayer.CharacterAdded:Connect(function()
+            task.wait(0.1)
+            addstuff(whoplayer)
+         end)
+         whoplayer.CharacterRemoving:Connect(function()
+            removestuff(whoplayer)
+         end)
+         if whoplayer.Character then
+            addstuff(whoplayer)
+         end
+      end
 
-local function setupPlayer(player)
-	player.CharacterAdded:Connect(function()
-		task.wait(0.1)
-		createVisualsForPlayer(player)
-	end)
-	player.CharacterRemoving:Connect(function()
-		removeVisualsForPlayer(player)
-	end)
-	if player.Character then
-		createVisualsForPlayer(player)
-	end
-end
+      plrsvc2.PlayerAdded:Connect(setupdude)
+      plrsvc2.PlayerRemoving:Connect(removestuff)
 
-Players.PlayerAdded:Connect(setupPlayer)
-Players.PlayerRemoving:Connect(removeVisualsForPlayer)
+      for _, dude in ipairs(plrsvc2:GetPlayers()) do
+         if dude ~= myself then
+            setupdude(dude)
+         end
+      end
 
-for _, player in ipairs(Players:GetPlayers()) do
-	if player ~= LocalPlayer then
-		setupPlayer(player)
-	end
-end
+      local creditgui = Instance.new("ScreenGui")
+      creditgui.Name = "ESP_CreditGUI"
+      creditgui.ResetOnSpawn = false
+      creditgui.Parent = myself:WaitForChild("PlayerGui")
 
-local StarterGui = game:GetService("StarterGui")
-local creditGui = Instance.new("ScreenGui")
-creditGui.Name = "ESP_CreditGUI"
-creditGui.ResetOnSpawn = false
-creditGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-local creditLabel = Instance.new("TextLabel")
-creditLabel.Size = UDim2.new(0, 300, 0, 30)
-creditLabel.Position = UDim2.new(0, 10, 0, 10)
-creditLabel.BackgroundTransparency = 1
-creditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-creditLabel.TextStrokeTransparency = 0
-creditLabel.Font = Enum.Font.GothamBold
-creditLabel.TextScaled = true
-creditLabel.Text = "Made by: Meloten/Pokorenie nebes"
-creditLabel.Parent = creditGui
+      local creditlbl = Instance.new("TextLabel")
+      creditlbl.Size = UDim2.new(0, 300, 0, 30)
+      creditlbl.Position = UDim2.new(0, 10, 0, 10)
+      creditlbl.BackgroundTransparency = 1
+      creditlbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+      creditlbl.TextStrokeTransparency = 0
+      creditlbl.Font = Enum.Font.GothamBold
+      creditlbl.TextScaled = true
+      creditlbl.Text = "Made by: Meloten/Pokorenie nebes"
+      creditlbl.Parent = creditgui
    end,
 })
 
-local BlenderButton = MainTab:CreateButton({
+local blenderfollow_omg = tab1:CreateButton({
    Name = "Blender Follow the player",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/f1Ep33jB"))()
    end,
 })
 
-local FollowerButton = MainTab:CreateButton({
+local follow_lmao = tab1:CreateButton({
    Name = "Follow the player",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/85U2e4Aa"))()
    end,
 })
 
-local Button = PlayerTab:CreateButton({
+local goku_btn = tab2:CreateButton({
    Name = "Goku moveset",
    Callback = function()
      loadstring(game:HttpGet("https://pastebin.com/raw/32Vs1U6V"))()
    end,
 })
 
-local ClickButton = PlayerTab:CreateButton({
+local fly_btn = tab2:CreateButton({
    Name = "Flight",
    Callback = function()
      loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Invinicible-Flight-R15-45414"))()
    end,
 })
 
-local SharinganButton = MainTab:CreateButton({
+local sharingan_uwu = tab1:CreateButton({
    Name = "Sharingan",
    Callback = function()
      loadstring(game:HttpGet("https://raw.githubusercontent.com/Okaygotenitsme/Pokorenie-nebes-Hub/refs/heads/main/Sharingan"))()
    end,
 })
 
-local SpeedSlider = PlayerTab:CreateSlider({
+local speedslider_zoom = tab2:CreateSlider({
    Name = "Walk Speed Slider",
    Range = {0, 500},
    Increment = 1,
    Suffix = "Speed power",
    CurrentValue = 16,
    Flag = "Flag2",
-   Callback = function(Value)
-      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   Callback = function(val)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
    end,
 })
 
-local JumpSlider = PlayerTab:CreateSlider({
+local jumpslider_boing = tab2:CreateSlider({
    Name = "Jump Power Slider",
    Range = {0, 300},
    Increment = 1,
    Suffix = "Jump power",
    CurrentValue = 1,
    Flag = "Flag1",
-   Callback = function(Value)
-      game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   Callback = function(val)
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = val
    end,
 })
- 
